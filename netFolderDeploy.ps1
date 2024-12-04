@@ -1,6 +1,6 @@
 ﻿# Definir variáveis
 $sourceFolder = "D:\temp\CADe_SIMU" # Caminho da pasta de origem
-$csvFilePath = "D:\Scripts\labinfo2.csv" # Caminho para o arquivo CSV
+$csvFilePath = "D:\Scripts\labinfo1.csv" # Caminho para o arquivo CSV
 $destinationFolder = "C$\" # Caminho do destino nos computadores remotos
 $prefix = "ZN" # Prefixo para os nomes dos computadores
 
