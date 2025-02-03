@@ -1,11 +1,11 @@
 # Caminho do arquivo CSV contendo a lista de hosts
-$caminhoCSV = "C:\caminho\para\lista_hosts.csv"
+$csvFilePath = "D:\Scripts\labinfo1.csv" # Caminho para o arquivo CSV
 
 # Defina a data a partir da qual os perfis serão excluídos (formato: MM/dd/yyyy)
 $dataLimite = [datetime]::ParseExact("10/01/2023", "MM/dd/yyyy", $null)
 
 # Importa a lista de hosts do arquivo CSV
-$hosts = Import-Csv -Path $caminhoCSV
+$hosts = Import-Csv -Path $csvFilePath
 
 # Listas para armazenar resultados
 $sucesso = @()
@@ -29,8 +29,8 @@ foreach ($host in $hosts) {
                 # Obtém a data de criação do perfil
                 $dataCriacao = [datetime]::ParseExact($perfil.Loaded, "yyyyMMddHHmmss.ffffff-000", $null)
 
-                # Verifica se o perfil é de domínio (SID não começa com S-1-5-21)
-                if ($perfil.SID -notlike "S-1-5-21-*") {
+                # Verifica se o perfil é de domínio (SID não começa com S-1-5-21-234021336-877152602-)
+                if ($perfil.SID -notlike "S-1-5-21-234021336-877152602-*") {
                     # Verifica se o perfil foi criado após a data limite
                     if ($dataCriacao -gt $dataLimite) {
                         $caminhoPerfil = $perfil.LocalPath
@@ -51,7 +51,7 @@ foreach ($host in $hosts) {
     catch {
         # Adiciona o host à lista de falha e exibe o erro
         $falha += $nomeHost
-        Write-Host "Erro ao conectar ou executar no host $nomeHost: $_"
+        Write-Host "Erro ao conectar ou executar no host ${nomeHost}"
     }
 }
 
