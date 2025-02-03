@@ -30,20 +30,16 @@ foreach ($host in $hosts) {
                 $dataCriacao = [datetime]::ParseExact($perfil.Loaded, "yyyyMMddHHmmss.ffffff-000", $null)
 
                 # Verifica se o perfil é de domínio (SID não começa com S-1-5-21-234021336-877152602-)
-                if ($perfil.SID -notlike "S-1-5-21-234021336-877152602-*") {
-                    # Verifica se o perfil foi criado após a data limite
-                    if ($dataCriacao -gt $dataLimite) {
+                if ($perfil.SID - "S-1-5-21-234021336-877152602-*") {                    
                         $caminhoPerfil = $perfil.LocalPath
-                        Write-Host "Removendo perfil de domínio no host $($env:COMPUTERNAME): $caminhoPerfil (Criado em: $dataCriacao)"
-
+                        Write-Host "Removendo perfil de domínio no host $($env:COMPUTERNAME): $caminhoPerfil (SID: $($perfil.SID))"
                         # Remove o perfil
                         $perfil.Delete()
-                    }
                 }
             }
 
             Write-Host "Limpeza de perfis de domínio concluída no host $($env:COMPUTERNAME)."
-        } -ArgumentList $dataLimite -ErrorAction Stop
+        } -ErrorAction Stop
 
         # Adiciona o host à lista de sucesso
         $sucesso += $nomeHost
