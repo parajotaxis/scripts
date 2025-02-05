@@ -1,21 +1,34 @@
-# Caminho do arquivo CSV contendo a lista de hosts
-$csvFilePath = "D:\Scripts\labinfo1.csv" # Caminho para o arquivo CSV
+# Definir variáveis
+$csvFilePath = "D:\Scripts\labinfo1Unico.csv" # Caminho para o arquivo CSV
+$prefix = "ZN" # Prefixo para os nomes dos computadores
 
-# Defina a data a partir da qual os perfis serão excluídos (formato: MM/dd/yyyy)
-$dataLimite = [datetime]::ParseExact("10/01/2023", "MM/dd/yyyy", $null)
+# Verificar se o arquivo de origem existe
+if (-Not (Test-Path -Path $sourceFile)) {
+    Write-Host "Arquivo de origem não encontrado: $sourceFile" -ForegroundColor Red
+    exit
+}
 
-# Importa a lista de hosts do arquivo CSV
-$hosts = Import-Csv -Path $csvFilePath
+# Verificar se o arquivo CSV existe
+if (-Not (Test-Path -Path $csvFilePath)) {
+    Write-Host "Arquivo CSV não encontrado: $csvFilePath" -ForegroundColor Red
+    exit
+}
 
-# Listas para armazenar resultados
-$sucesso = @()
-$falha = @()
+# Ler a lista de computadores do arquivo CSV
+$computers = Get-Content -Path $csvFilePath
 
-# Loop através de cada host na lista
-foreach ($host in $hosts) {
-    $nomeHost = $host.HostName  # Assume que o arquivo CSV tem uma coluna chamada "HostName"
+# Contadores para acompanhamento
+$successCount = 0
+$failureCount = 0
 
-    Write-Host "Conectando ao host: $nomeHost"
+# Arrays para registrar os resultados
+$successfulComputers = @()
+$failedComputers = @()
+
+# Loop através da lista de computadores
+foreach ($computer in $computers) {
+    $computerWithPrefix = "$prefix$computer" # Adicionar o prefixo ao nome do computador
+    Write-Host "Conectando ao computador: $computerWithPrefix" -ForegroundColor Cyan
 
     try {
         # Executa o script remotamente no host
@@ -26,11 +39,9 @@ foreach ($host in $hosts) {
             $perfis = Get-WmiObject -Class Win32_UserProfile | Where-Object { $_.LocalPath -and $_.Special -eq $false }
 
             foreach ($perfil in $perfis) {
-                # Obtém a data de criação do perfil
-                $dataCriacao = [datetime]::ParseExact($perfil.Loaded, "yyyyMMddHHmmss.ffffff-000", $null)
 
                 # Verifica se o perfil é de domínio (SID não começa com S-1-5-21-234021336-877152602-)
-                if ($perfil.SID - "S-1-5-21-234021336-877152602-*") {                    
+                if ($perfil.SID - "S-1-5-21-234021336-877152602-3426630572-218607") {                    
                         $caminhoPerfil = $perfil.LocalPath
                         Write-Host "Removendo perfil de domínio no host $($env:COMPUTERNAME): $caminhoPerfil (SID: $($perfil.SID))"
                         # Remove o perfil
@@ -47,7 +58,7 @@ foreach ($host in $hosts) {
     catch {
         # Adiciona o host à lista de falha e exibe o erro
         $falha += $nomeHost
-        Write-Host "Erro ao conectar ou executar no host ${nomeHost}"
+        Write-Host "Erro ao conectar ou executar no host {$nomeHost}"
     }
 }
 
